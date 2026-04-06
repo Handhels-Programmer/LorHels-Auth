@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LorHels Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .loader { border-top-color: #3b82f6; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+
+    <nav class="bg-blue-900 text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                <span class="text-xl font-bold tracking-wider">LorHels <span class="font-light">Auth</span></span>
+            </div>
+            <div class="flex space-x-2 sm:space-x-4 items-center">
+                <button onclick="switchView('scanner')" id="nav-scanner" class="px-3 py-2 rounded-md text-sm transition-colors hover:bg-blue-800/50">Escanear</button>
+                <button onclick="switchView('admin')" id="nav-admin" class="px-3 py-2 rounded-md text-sm transition-colors bg-blue-800 font-semibold hover:bg-blue-800/50">Panel Admin</button>
+                <button onclick="logoutAdmin()" id="nav-logout" class="hidden px-3 py-2 rounded-md text-sm transition-colors text-red-300 hover:bg-red-900/50">Cerrar Sesión</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-4 py-8">
+        
+        <div id="loading-view" class="view-section active text-center py-20">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mx-auto mb-4"></div>
+            <p class="text-gray-500">Conectando al sistema...</p>
+        </div>
+
+        <div id="login-view" class="view-section">
+            <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Acceso Administrativo</h2>
+                    <p class="text-sm text-gray-500 mt-2">Ingresa tus credenciales para gestionar el personal.</p>
+                </div>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                        <input type="email" id="login-email" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                        <input type="password" id="login-password" class="w-full p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Entrar al Panel</button>
+                    <p id="login-error" class="text-red-500 text-sm hidden text-center font-medium">Credenciales incorrectas.</p>
+                </form>
+            </div>
+        </div>
+
+        <div id="admin-view" class="view-section space-y-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold flex items-center">Gestión de Personal</h1>
+                <button onclick="toggleForm()" id="btn-toggle-form" class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center hover:bg-blue-700">
+                    Nuevo Empleado
+                </button>
+            </div>
+
+            <form id="employee-form" class="hidden bg-white p-6 rounded-xl shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-1 md:col-span-2"><h3 class="font-semibold text-lg border-b pb-2 mb-4">Datos del Empleado</h3></div>
+                <input type="text" id="emp-name" placeholder="Nombre Completo" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="text" id="emp-role" placeholder="Cargo (Ej. Asesor de Ventas)" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="text" id="emp-dept" placeholder="Departamento" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="url" id="emp-photo" placeholder="URL de la Foto (Ej. https://...)" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="tel" id="emp-phone" placeholder="WhatsApp / Teléfono" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="email" id="emp-email" placeholder="Correo Corporativo" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
+                <select id="emp-status" class="p-3 border rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                </select>
+                <div class="col-span-1 md:col-span-2 mt-4">
+                    <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors">Guardar Empleado y Generar QR</button>
+                </div>
+            </form>
+
+            <div id="employees-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            <div id="empty-state" class="hidden text-center py-10 text-gray-500">No hay empleados registrados. Añade uno para comenzar.</div>
+        </div>
+
+        <div id="scanner-view" class="view-section">
+            <div class="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                <h2 class="text-2xl font-bold mb-2">Escanear Código QR</h2>
+                <p class="text-gray-500 mb-6 text-sm">Pega el ID único del empleado para validar.</p>
+                <form id="scan-form" class="flex flex-col space-y-4">
+                    <input type="text" id="scan-input" placeholder="Pega el ID del empleado aquí..." class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-center" required>
+                    <button type="submit" class="bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">Verificar Identidad</button>
+                    <p id="scan-error" class="text-red-500 text-sm hidden font-medium">Código no válido o empleado no encontrado.</p>
+                </form>
+            </div>
+        </div>
+
+        <div id="profile-view" class="view-section">
+            <div id="profile-container" class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 relative"></div>
+            <div class="text-center mt-6">
+                <button onclick="window.location.href = window.location.origin + window.location.pathname" class="text-blue-600 hover:underline text-sm font-medium">Volver al Inicio</button>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        // Agregamos getDoc a nuestras importaciones
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBPGLD6NzAw9eo3zaZMaVnDT1wxrw86EHk",
+            authDomain: "lorhels-auth.firebaseapp.com",
+            projectId: "lorhels-auth",
+            storageBucket: "lorhels-auth.firebasestorage.app",
+            messagingSenderId: "87058050925",
+            appId: "1:87058050925:web:0b4ba9be72f4e6763b3464"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let globalEmployees = [];
+        let unsubscribeDb = null;
+
+        const views = { loading: document.getElementById('loading-view'), login: document.getElementById('login-view'), admin: document.getElementById('admin-view'), scanner: document.getElementById('scanner-view'), profile: document.getElementById('profile-view') };
+        const navButtons = { admin: document.getElementById('nav-admin'), scanner: document.getElementById('nav-scanner'), logout: document.getElementById('nav-logout') };
+        const employeeForm = document.getElementById('employee-form');
+        const employeesGrid = document.getElementById('employees-grid');
+        const loginForm = document.getElementById('login-form');
+        const scanError = document.getElementById('scan-error');
+
+        window.switchView = function(viewName) {
+            if (viewName === 'admin' && (!auth.currentUser || auth.currentUser.isAnonymous)) {
+                viewName = 'login';
+            }
+            Object.values(views).forEach(v => v.classList.remove('active'));
+            views[viewName].classList.add('active');
+
+            if(navButtons.admin) {
+                navButtons.admin.className = `px-3 py-2 rounded-md text-sm transition-colors ${viewName === 'admin' || viewName === 'login' ? 'bg-blue-800 font-semibold' : 'hover:bg-blue-800/50'}`;
+                navButtons.scanner.className = `px-3 py-2 rounded-md text-sm transition-colors ${viewName === 'scanner' ? 'bg-blue-800 font-semibold' : 'hover:bg-blue-800/50'}`;
+            }
+        };
+
+        window.toggleForm = function() {
+            const btn = document.getElementById('btn-toggle-form');
+            if (employeeForm.classList.contains('hidden')) {
+                employeeForm.classList.remove('hidden'); btn.textContent = 'Cancelar';
+            } else {
+                employeeForm.classList.add('hidden'); btn.textContent = 'Nuevo Empleado'; employeeForm.reset();
+            }
+        };
+
+        // --- AUTENTICACIÓN Y LECTURA DE URL ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                signInAnonymously(auth).catch(console.error);
+                return;
+            }
+
+            if (!user.isAnonymous) {
+                setupDatabaseListener();
+                navButtons.logout.classList.remove('hidden');
+            } else {
+                navButtons.logout.classList.add('hidden');
+            }
+
+            // Aquí leemos si alguien llegó escaneando un QR (si hay un ?id=... en la dirección)
+            const urlParams = new URLSearchParams(window.location.search);
+            const scannedId = urlParams.get('id');
+
+            if (scannedId) {
+                await loadDirectProfile(scannedId);
+            } else {
+                if (user.isAnonymous) {
+                    switchView('scanner');
+                } else {
+                    switchView('admin');
+                }
+            }
+        });
+
+        // Función para cargar un empleado directo desde Firestore sin descargar toda la base de datos
+        async function loadDirectProfile(id) {
+            switchView('loading');
+            try {
+                const docSnap = await getDoc(doc(db, 'employees', id));
+                if (docSnap.exists()) {
+                    renderProfile({ id: docSnap.id, ...docSnap.data() });
+                    switchView('profile');
+                } else {
+                    scanError.textContent = "Empleado no encontrado o código inválido.";
+                    scanError.classList.remove('hidden');
+                    switchView('scanner');
+                }
+            } catch (e) {
+                console.error("Error leyendo ID directo", e);
+                switchView('scanner');
+            }
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btn = loginForm.querySelector('button');
+            const errorMsg = document.getElementById('login-error');
+            
+            btn.textContent = 'Verificando...'; btn.disabled = true; errorMsg.classList.add('hidden');
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                loginForm.reset();
+            } catch (error) {
+                errorMsg.classList.remove('hidden');
+            } finally {
+                btn.textContent = 'Entrar al Panel'; btn.disabled = false;
+            }
+        });
+
+        window.logoutAdmin = async function() {
+            await signOut(auth);
+            // Al salir, borramos cualquier ?id= de la URL para que no recargue el perfil
+            window.history.replaceState({}, document.title, window.location.pathname);
+            switchView('scanner');
+        };
+
+        function setupDatabaseListener() {
+            const employeesRef = collection(db, 'employees');
+            if (unsubscribeDb) unsubscribeDb();
+            unsubscribeDb = onSnapshot(employeesRef, (snapshot) => {
+                globalEmployees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if(views.admin.classList.contains('active')) renderAdminGrid();
+            });
+        }
+
+        function renderAdminGrid() {
+            employeesGrid.innerHTML = '';
+            const emptyState = document.getElementById('empty-state');
+            
+            if (globalEmployees.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                globalEmployees.forEach(emp => {
+                    const isActive = emp.status === 'Activo';
+                    const isAdmin = emp.isAdmin || false;
+                    
+                    // --- AQUÍ CONSTRUIMOS LA URL DEL QR ---
+                    // Obtenemos la dirección actual de tu página (sin parámetros extra)
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    // Le sumamos el ID del empleado
+                    const profileUrl = `${baseUrl}?id=${emp.id}`;
+                    // Convertimos la URL a un formato seguro para la API de QR
+                    const encodedUrl = encodeURIComponent(profileUrl);
+
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col";
+                    card.innerHTML = `
+                        <div class="p-4 flex items-start space-x-4">
+                            <img src="${emp.photoUrl}" alt="${emp.name}" onerror="this.src='https://via.placeholder.com/150?text=Foto'" class="w-16 h-16 rounded-full object-cover border-2 border-gray-200" />
+                            <div class="flex-1">
+                                <h3 class="font-bold text-lg leading-tight text-gray-900">${emp.name} ${isAdmin ? '<span class="text-yellow-500 text-sm ml-1" title="Administrador">★</span>' : ''}</h3>
+                                <p class="text-sm text-gray-600">${emp.role}</p>
+                                <div class="mt-2 space-x-1">
+                                    <span class="px-2 py-1 text-xs rounded-full font-medium ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${emp.status}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 border-t border-gray-100 flex flex-col items-center">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodedUrl}" alt="QR" class="w-24 h-24 mb-2 p-1 bg-white border rounded" title="Apunta a: ${profileUrl}" />
+                            <p class="text-xs text-center text-gray-400">Escanea para verificar</p>
+                        </div>
+                        <div class="p-2 border-t border-gray-100 flex justify-between bg-white mt-auto">
+                            <button onclick="toggleAdmin('${emp.id}', ${isAdmin})" class="p-2 ${isAdmin ? 'text-yellow-500' : 'text-gray-400'} hover:text-yellow-600 rounded" title="${isAdmin ? 'Quitar Admin' : 'Hacer Admin'}">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                            </button>
+                            <button onclick="toggleStatus('${emp.id}', '${emp.status}')" class="p-2 text-gray-600 hover:text-blue-600 rounded" title="Cambiar Estado">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                            </button>
+                            <button onclick="deleteEmp('${emp.id}')" class="p-2 text-gray-600 hover:text-red-600 rounded" title="Eliminar">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    `;
+                    employeesGrid.appendChild(card);
+                });
+            }
+        }
+
+        employeeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = employeeForm.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.textContent = 'Guardando...';
+
+            const newEmp = {
+                name: document.getElementById('emp-name').value,
+                role: document.getElementById('emp-role').value,
+                department: document.getElementById('emp-dept').value,
+                photoUrl: document.getElementById('emp-photo').value,
+                phone: document.getElementById('emp-phone').value,
+                email: document.getElementById('emp-email').value,
+                status: document.getElementById('emp-status').value,
+                isAdmin: false,
+                verificationCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+                createdAt: new Date().toISOString()
+            };
+
+            try {
+                await addDoc(collection(db, 'employees'), newEmp);
+                toggleForm();
+            } catch (error) { console.error(error); } finally {
+                btn.disabled = false; btn.textContent = 'Guardar Empleado y Generar QR';
+            }
+        });
+
+        window.toggleStatus = async (id, currentStatus) => await updateDoc(doc(db, 'employees', id), { status: currentStatus === 'Activo' ? 'Inactivo' : 'Activo' });
+        window.toggleAdmin = async (id, currentIsAdmin) => { if(confirm(currentIsAdmin ? "¿Quitar Admin?" : "¿Hacer Admin?")) await updateDoc(doc(db, 'employees', id), { isAdmin: !currentIsAdmin }); };
+        window.deleteEmp = async (id) => { if(confirm("¿Eliminar registro?")) await deleteDoc(doc(db, 'employees', id)); };
+
+        const scanForm = document.getElementById('scan-form');
+        scanForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('scan-input').value.trim();
+            // Permite usar el simulador con el ID manual
+            await loadDirectProfile(id);
+        });
+
+        function renderProfile(emp) {
+            const isActive = emp.status === 'Activo';
+            const cleanPhone = emp.phone.replace(/[^0-9]/g, '');
+            const profileContainer = document.getElementById('profile-container');
+
+            profileContainer.innerHTML = `
+                <div class="h-32 ${isActive ? 'bg-gradient-to-r from-blue-700 to-blue-500' : 'bg-gradient-to-r from-red-700 to-red-500'} relative">
+                    <div class="absolute top-4 left-4 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-white text-xs font-semibold tracking-wider border border-white/30 flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        VERIFICACIÓN OFICIAL
+                    </div>
+                </div>
+                <div class="px-6 relative -mt-16 text-center">
+                    <div class="relative inline-block">
+                        <img src="${emp.photoUrl}" alt="${emp.name}" onerror="this.src='https://via.placeholder.com/150?text=Foto'" class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-md bg-white mx-auto"/>
+                        <div class="absolute bottom-2 right-2 w-6 h-6 rounded-full border-2 border-white ${isActive ? 'bg-green-500' : 'bg-red-500'}" title="${emp.status}"></div>
+                    </div>
+                    <h2 class="text-2xl font-bold mt-4 text-gray-900">${emp.name}</h2>
+                    <p class="text-blue-600 font-medium">${emp.role}</p>
+                    <p class="text-gray-500 text-sm">${emp.department}</p>
+                </div>
+                <div class="px-6 py-6 mt-2 space-y-6">
+                    <div class="p-4 rounded-xl flex items-center justify-center space-x-2 ${isActive ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}">
+                        <span class="font-bold">${isActive ? 'PERSONAL AUTORIZADO' : 'PERSONAL INACTIVO'}</span>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-sm">
+                        <div class="flex justify-between border-b pb-2 mb-2">
+                            <span class="text-gray-500">Código Único:</span>
+                            <span class="font-mono font-bold text-gray-800">${emp.verificationCode}</span>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Contacto Directo</h4>
+                        <a href="https://wa.me/${cleanPhone}" target="_blank" rel="noopener noreferrer" class="w-full flex items-center justify-center space-x-2 bg-[#25D366] text-white p-3 rounded-xl font-medium hover:bg-[#20bd5a] transition-colors">
+                            <span>WhatsApp Directo</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
