@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="do">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -251,6 +251,11 @@
                 navButtons.scanner.classList.toggle('bg-blue-800', viewName === 'scanner');
                 navButtons.scanner.classList.toggle('font-semibold', viewName === 'scanner');
             }
+
+            // NUEVO: Si entramos al panel admin y ya hay empleados descargados, oblígalo a dibujarlos
+            if (viewName === 'admin' && globalEmployees.length > 0) {
+                renderAdminGrid(searchInput.value);
+            }
         };
 
         // --- GESTIÓN DE FORMULARIOS ---
@@ -493,9 +498,17 @@
         function setupDatabaseListener() {
             const employeesRef = collection(db, 'employees');
             if (unsubscribeDb) unsubscribeDb();
+            
             unsubscribeDb = onSnapshot(employeesRef, (snapshot) => {
                 globalEmployees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if(views.admin.classList.contains('active')) { renderAdminGrid(searchInput.value); }
+                
+                // NUEVO: Quitamos la condición del 'if'. Ahora siempre preparará los datos en la cuadrícula de fondo
+                renderAdminGrid(searchInput.value);
+                
+            }, (error) => {
+                // También agregamos esta alerta por si el problema es que caducaron los permisos de tu Firebase
+                console.error("Error de Firebase Firestore:", error);
+                alert("Error al cargar los datos. Revisa las 'Reglas' de Firestore en la consola de Google Firebase.");
             });
         }
 
