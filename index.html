@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LorHels Authentication</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
         .view-section { display: none; }
         .view-section.active { display: block; }
@@ -19,7 +20,7 @@
         <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2">
                 <svg class="w-7 h-7 sm:w-8 sm:h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                <span class="text-lg sm:text-xl font-bold tracking-wider">LorHels <span class="text-lg sm:text-xl font-light tracking-wider">Auth</span></span>
+                <span class="text-lg sm:text-xl font-bold tracking-wider" id="nav-company-name">LorHels <span class="font-light hidden xs:inline">Auth</span></span>
             </div>
             
             <div class="flex space-x-1 sm:space-x-3 items-center">
@@ -74,10 +75,29 @@
                     <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                     Gestión de Personal
                 </h1>
-                <button onclick="toggleForm()" id="btn-toggle-form" class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2.5 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors shadow-sm font-medium">
-                    <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                    Nuevo Empleado
-                </button>
+                
+                <div class="w-full sm:w-auto flex flex-wrap gap-2">
+                    <button onclick="exportData()" class="flex-1 sm:flex-none bg-green-50 text-green-700 px-3 py-2 rounded-lg flex items-center justify-center hover:bg-green-100 transition-colors shadow-sm text-sm font-medium border border-green-200">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Excel
+                    </button>
+                    
+                    <input type="file" id="import-file" accept=".xlsx, .xls" class="hidden" onchange="importData(event)">
+                    <button onclick="document.getElementById('import-file').click()" class="flex-1 sm:flex-none bg-green-50 text-green-700 px-3 py-2 rounded-lg flex items-center justify-center hover:bg-green-100 transition-colors shadow-sm text-sm font-medium border border-green-200">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Excel
+                    </button>
+
+                    <button onclick="toggleCompanyForm()" id="btn-toggle-company" class="flex-1 sm:flex-none bg-gray-800 text-white px-3 py-2 rounded-lg flex items-center justify-center hover:bg-gray-900 transition-colors shadow-sm text-sm font-medium">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Empresa
+                    </button>
+
+                    <button onclick="toggleForm()" id="btn-toggle-form" class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors shadow-sm text-sm font-medium mt-2 sm:mt-0">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Nuevo Empleado
+                    </button>
+                </div>
             </div>
 
             <div class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 flex items-center transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
@@ -88,9 +108,27 @@
                 </button>
             </div>
 
-            <form id="employee-form" class="hidden bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form id="company-form" class="hidden bg-white p-5 sm:p-6 rounded-xl shadow-md border border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="col-span-1 md:col-span-2">
-                    <h3 id="form-title" class="font-semibold text-lg border-b pb-2 mb-2">Datos del Empleado</h3>
+                    <h3 class="font-bold text-lg border-b pb-2 mb-2 text-gray-800">Datos Corporativos (Perfil Público)</h3>
+                    <p class="text-sm text-gray-500 mb-4">Esta información aparecerá al pie del carnet digital de todos los empleados.</p>
+                </div>
+                
+                <input type="text" id="comp-name" placeholder="Nombre de la Empresa" class="p-3 text-base border rounded-lg outline-none focus:ring-2 focus:ring-gray-800" required>
+                <input type="text" id="comp-phone-display" placeholder="Teléfono (Ej: +1 809-555-0100)" class="p-3 text-base border rounded-lg outline-none focus:ring-2 focus:ring-gray-800" required>
+                <input type="text" id="comp-phone-link" placeholder="WhatsApp (Solo números: Ej. 18095550100)" class="p-3 text-base border rounded-lg outline-none focus:ring-2 focus:ring-gray-800" required>
+                <input type="email" id="comp-email" placeholder="Correo Electrónico de Contacto" class="p-3 text-base border rounded-lg outline-none focus:ring-2 focus:ring-gray-800" required>
+                <input type="text" id="comp-address" placeholder="Dirección Física Completa" class="col-span-1 md:col-span-2 p-3 text-base border rounded-lg outline-none focus:ring-2 focus:ring-gray-800" required>
+                <input type="url" id="comp-map" placeholder="Enlace SRC de Google Maps (Ej: https://www.google.com/maps/embed?...)" class="col-span-1 md:col-span-2 p-3 text-base border rounded-lg outline-none focus:ring-2 focus:ring-gray-800" required>
+
+                <div class="col-span-1 md:col-span-2 mt-2">
+                    <button type="submit" id="btn-submit-company" class="w-full bg-gray-800 text-white py-3.5 rounded-lg font-semibold hover:bg-gray-900 transition-colors shadow-sm text-base">Guardar Configuración de Empresa</button>
+                </div>
+            </form>
+
+            <form id="employee-form" class="hidden bg-white p-5 sm:p-6 rounded-xl shadow-sm border border-blue-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-1 md:col-span-2">
+                    <h3 id="form-title" class="font-semibold text-lg border-b pb-2 mb-2 text-blue-900">Datos del Empleado</h3>
                 </div>
                 
                 <input type="text" id="emp-name" placeholder="Nombre Completo" class="p-3 text-base border rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
@@ -109,9 +147,9 @@
                     <option value="Inactivo">Inactivo</option>
                 </select>
 
-                <div class="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-100 mt-2">
-                    <h4 class="font-semibold text-sm text-gray-700 mb-3">Visibilidad en Perfil Público (Carnet)</h4>
-                    <div class="flex flex-col md:flex-row md:space-x-6 space-y-3 md:space-y-0 text-sm text-gray-600">
+                <div class="col-span-1 md:col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-100 mt-2">
+                    <h4 class="font-semibold text-sm text-blue-900 mb-3">Visibilidad en Perfil Público (Carnet)</h4>
+                    <div class="flex flex-col md:flex-row md:space-x-6 space-y-3 md:space-y-0 text-sm text-blue-800">
                         <label class="flex items-center cursor-pointer select-none">
                             <input type="checkbox" id="show-dept" checked class="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 mr-3"> 
                             Mostrar Departamento
@@ -128,7 +166,7 @@
                 </div>
 
                 <div class="col-span-1 md:col-span-2 mt-4">
-                    <button type="submit" id="btn-submit-employee" class="w-full bg-green-600 text-white py-3.5 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-sm text-base">Guardar Empleado y Generar QR</button>
+                    <button type="submit" id="btn-submit-employee" class="w-full bg-blue-600 text-white py-3.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm text-base">Guardar Empleado y Generar QR</button>
                 </div>
             </form>
 
@@ -161,7 +199,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBPGLD6NzAw9eo3zaZMaVnDT1wxrw86EHk",
@@ -179,11 +217,21 @@
         let globalEmployees = [];
         let unsubscribeDb = null;
         let editingEmployeeId = null; 
+        
+        // Datos de la empresa por defecto (por si el administrador aún no los ha guardado)
+        let globalCompanySettings = {
+            name: 'LorHels Auth',
+            phoneDisplay: '+1 (809) 555-0100',
+            phoneLink: '18095550100',
+            email: 'info@lorhels.com',
+            address: 'Av. Winston Churchill #123, Ensanche Piantini, Santo Domingo, D.N.',
+            mapUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3784.3415175968537!2d-69.94314118464303!3d18.46820127559194!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8eaf89e49ab7da61%3A0x6b1062b1b3fb4907!2sAv.%20Winston%20Churchill%2C%20Santo%20Domingo!5e0!3m2!1sen!2sdo!4v1700000000000!5m2!1sen!2sdo'
+        };
 
-        // Elementos del DOM
         const views = { loading: document.getElementById('loading-view'), login: document.getElementById('login-view'), admin: document.getElementById('admin-view'), scanner: document.getElementById('scanner-view'), profile: document.getElementById('profile-view') };
         const navButtons = { admin: document.getElementById('nav-admin'), scanner: document.getElementById('nav-scanner'), logout: document.getElementById('nav-logout') };
         const employeeForm = document.getElementById('employee-form');
+        const companyForm = document.getElementById('company-form');
         const employeesGrid = document.getElementById('employees-grid');
         const loginForm = document.getElementById('login-form');
         const scanError = document.getElementById('scan-error');
@@ -205,19 +253,52 @@
             }
         };
 
+        // --- GESTIÓN DE FORMULARIOS ---
         window.toggleForm = function() {
+            companyForm.classList.add('hidden'); // Cerramos el de empresa si estaba abierto
+            document.getElementById('btn-toggle-company').innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Empresa`;
+
             const btn = document.getElementById('btn-toggle-form');
             if (employeeForm.classList.contains('hidden')) {
                 employeeForm.classList.remove('hidden'); 
-                btn.innerHTML = `<svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Cancelar`;
+                btn.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Cancelar`;
                 btn.classList.replace('bg-blue-600', 'bg-gray-600');
                 btn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-700');
             } else {
                 employeeForm.classList.add('hidden'); 
-                btn.innerHTML = `<svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Nuevo Empleado`;
+                btn.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Nuevo Empleado`;
                 btn.classList.replace('bg-gray-600', 'bg-blue-600');
                 btn.classList.replace('hover:bg-gray-700', 'hover:bg-blue-700');
                 resetForm(); 
+            }
+        };
+
+        window.toggleCompanyForm = async function() {
+            employeeForm.classList.add('hidden'); // Cerramos el de empleado
+            document.getElementById('btn-toggle-form').innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg> Nuevo Empleado`;
+            document.getElementById('btn-toggle-form').classList.replace('bg-gray-600', 'bg-blue-600');
+
+            const btn = document.getElementById('btn-toggle-company');
+            if (companyForm.classList.contains('hidden')) {
+                // Descargar datos actuales antes de abrir
+                const compSnap = await getDoc(doc(db, 'settings', 'companyProfile'));
+                if(compSnap.exists()) {
+                    const data = compSnap.data();
+                    document.getElementById('comp-name').value = data.name;
+                    document.getElementById('comp-phone-display').value = data.phoneDisplay;
+                    document.getElementById('comp-phone-link').value = data.phoneLink;
+                    document.getElementById('comp-email').value = data.email;
+                    document.getElementById('comp-address').value = data.address;
+                    document.getElementById('comp-map').value = data.mapUrl;
+                } else {
+                    document.getElementById('comp-name').value = globalCompanySettings.name;
+                }
+
+                companyForm.classList.remove('hidden'); 
+                btn.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg> Cancelar`;
+            } else {
+                companyForm.classList.add('hidden'); 
+                btn.innerHTML = `<svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Empresa`;
             }
         };
 
@@ -234,6 +315,34 @@
             document.getElementById('show-email').checked = true;
         }
 
+        // --- EVENTO GUARDAR EMPRESA ---
+        companyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-company');
+            btn.disabled = true; btn.textContent = 'Guardando...';
+
+            const newData = {
+                name: document.getElementById('comp-name').value,
+                phoneDisplay: document.getElementById('comp-phone-display').value,
+                phoneLink: document.getElementById('comp-phone-link').value,
+                email: document.getElementById('comp-email').value,
+                address: document.getElementById('comp-address').value,
+                mapUrl: document.getElementById('comp-map').value
+            };
+
+            try {
+                // Guardamos en una colección especial llamada 'settings'
+                await setDoc(doc(db, 'settings', 'companyProfile'), newData);
+                globalCompanySettings = newData; // Actualizamos la variable local
+                alert("Configuración de empresa guardada con éxito.");
+                toggleCompanyForm();
+            } catch (error) {
+                console.error(error); alert("Error al guardar la configuración.");
+            } finally {
+                btn.disabled = false; btn.textContent = 'Guardar Configuración de Empresa';
+            }
+        });
+
         onAuthStateChanged(auth, async (user) => {
             if (!user) { signInAnonymously(auth).catch(console.error); return; }
             
@@ -245,6 +354,12 @@
                 navButtons.logout.classList.add('hidden'); 
                 navButtons.logout.classList.remove('flex');
             }
+
+            // Descargamos la configuración de la empresa de fondo por si la necesitamos en el escáner
+            try {
+                const compSnap = await getDoc(doc(db, 'settings', 'companyProfile'));
+                if(compSnap.exists()) globalCompanySettings = compSnap.data();
+            } catch(e) { console.log("Usando datos de empresa por defecto"); }
 
             const urlParams = new URLSearchParams(window.location.search);
             const scannedId = urlParams.get('id');
@@ -258,7 +373,12 @@
             try {
                 const docSnap = await getDoc(doc(db, 'employees', id));
                 if (docSnap.exists()) {
-                    renderProfile({ id: docSnap.id, ...docSnap.data() });
+                    // Asegurarnos de tener los datos de la empresa más recientes
+                    const compSnap = await getDoc(doc(db, 'settings', 'companyProfile'));
+                    let companyData = globalCompanySettings;
+                    if(compSnap.exists()) companyData = compSnap.data();
+
+                    renderProfile({ id: docSnap.id, ...docSnap.data() }, companyData);
                     switchView('profile');
                 } else {
                     scanError.textContent = "Empleado no encontrado o código inválido.";
@@ -284,6 +404,76 @@
             await signOut(auth);
             window.history.replaceState({}, document.title, window.location.pathname);
             switchView('scanner');
+        };
+
+        window.exportData = function() {
+            if (globalEmployees.length === 0) { alert("No hay empleados para exportar."); return; }
+            
+            const cleanData = globalEmployees.map(emp => ({
+                "Nombre": emp.name,
+                "Cargo": emp.role,
+                "Departamento": emp.department,
+                "Telefono": emp.phone,
+                "Correo": emp.email
+            }));
+            
+            const worksheet = XLSX.utils.json_to_sheet(cleanData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Empleados");
+            const date = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `lorhels_empleados_${date}.xlsx`);
+        };
+
+        window.importData = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const importedRows = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (importedRows.length > 0) {
+                        if(confirm(`¿Estás seguro de importar ${importedRows.length} registros desde el Excel?\n\nEl sistema usará la columna "Correo" para actualizar los existentes, y creará un código QR nuevo para los que no existan.`)) {
+                            switchView('loading');
+                            
+                            for (const row of importedRows) {
+                                const email = row['Correo'] || row['correo'] || row['Email'] || row['email'];
+                                if(!email) continue; 
+                                
+                                const empData = {
+                                    name: row['Nombre'] || row['nombre'] || row['Name'] || '',
+                                    role: row['Cargo'] || row['cargo'] || row['Role'] || '',
+                                    department: row['Departamento'] || row['departamento'] || row['Department'] || '',
+                                    phone: row['Telefono'] || row['telefono'] || row['Phone'] ? String(row['Telefono'] || row['telefono'] || row['Phone']) : '',
+                                    email: email
+                                };
+
+                                const existingEmp = globalEmployees.find(e => e.email.toLowerCase() === email.toLowerCase());
+                                
+                                if (existingEmp) {
+                                    await updateDoc(doc(db, 'employees', existingEmp.id), empData);
+                                } else {
+                                    empData.status = 'Activo';
+                                    empData.showDept = true;
+                                    empData.showPhone = true;
+                                    empData.showEmail = true;
+                                    empData.verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+                                    empData.createdAt = new Date().toISOString();
+                                    empData.photoUrl = "https://via.placeholder.com/150?text=Sin+Foto"; 
+                                    await addDoc(collection(db, 'employees'), empData);
+                                }
+                            }
+                            alert("Importación completada con éxito."); switchView('admin');
+                        }
+                    } else { alert("El archivo Excel parece estar vacío o no tiene el formato correcto."); }
+                } catch (err) { console.error("Error al importar Excel:", err); alert("Hubo un error al leer el archivo Excel."); }
+                event.target.value = ''; 
+            };
+            reader.readAsArrayBuffer(file);
         };
 
         searchInput.addEventListener('input', (e) => {
@@ -331,7 +521,6 @@
                 emptyState.classList.add('hidden');
                 filteredEmployees.forEach(emp => {
                     const isActive = emp.status === 'Activo';
-                    const isAdmin = emp.isAdmin || false;
                     const encodedUrl = encodeURIComponent(`${window.location.origin}${window.location.pathname}?id=${emp.id}`);
 
                     const card = document.createElement('div');
@@ -345,7 +534,7 @@
                         <div class="p-4 sm:p-5 flex items-start space-x-4">
                             <img src="${emp.photoUrl}" alt="${emp.name}" onerror="this.src='https://via.placeholder.com/150?text=Foto'" class="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover border-2 border-gray-200 shrink-0" />
                             <div class="flex-1 min-w-0">
-                                <h3 class="font-bold text-base sm:text-lg leading-tight text-gray-900 pr-4 truncate">${emp.name} ${isAdmin ? '<span class="text-yellow-500 text-sm ml-1" title="Administrador">★</span>' : ''}</h3>
+                                <h3 class="font-bold text-base sm:text-lg leading-tight text-gray-900 pr-4 truncate">${emp.name}</h3>
                                 <p class="text-xs sm:text-sm text-gray-600 truncate">${emp.role}</p>
                                 <div class="mt-2 space-x-1">
                                     <span class="px-2 py-1 text-[10px] sm:text-xs rounded-full font-medium ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${emp.status}</span>
@@ -443,7 +632,6 @@
             try {
                 if (editingEmployeeId) { await updateDoc(doc(db, 'employees', editingEmployeeId), empData); } 
                 else {
-                    empData.isAdmin = false;
                     empData.verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
                     empData.createdAt = new Date().toISOString();
                     if(!empData.photoUrl) empData.photoUrl = "https://via.placeholder.com/150?text=Sin+Foto";
@@ -455,8 +643,7 @@
         });
 
         window.toggleStatus = async (id, currentStatus) => await updateDoc(doc(db, 'employees', id), { status: currentStatus === 'Activo' ? 'Inactivo' : 'Activo' });
-        window.toggleAdmin = async (id, currentIsAdmin) => { if(confirm(currentIsAdmin ? "¿Quitar Admin?" : "¿Hacer Admin?")) await updateDoc(doc(db, 'employees', id), { isAdmin: !currentIsAdmin }); };
-        window.deleteEmp = async (id) => { if(confirm("¿Eliminar registro?")) await deleteDoc(doc(db, 'employees', id)); };
+        window.deleteEmp = async (id) => { if(confirm("¿Estás seguro de eliminar este registro?")) await deleteDoc(doc(db, 'employees', id)); };
 
         const scanForm = document.getElementById('scan-form');
         scanForm.addEventListener('submit', async (e) => {
@@ -465,7 +652,8 @@
             await loadDirectProfile(id);
         });
 
-        function renderProfile(emp) {
+        // Agregamos companyData como segundo parámetro para usar los datos dinámicos
+        function renderProfile(emp, companyData = globalCompanySettings) {
             const isActive = emp.status === 'Activo';
             const cleanPhone = emp.phone ? emp.phone.replace(/[^0-9]/g, '') : '';
             const profileContainer = document.getElementById('profile-container');
@@ -549,36 +737,29 @@
 
                 <div class="bg-blue-50 p-6 border-t-2 border-blue-100 mt-6 rounded-b-2xl">
                     <h4 class="text-sm font-bold text-blue-900 uppercase tracking-wider text-center mb-2">¿Dudas sobre esta identidad?</h4>
-                    <p class="text-xs text-blue-700 text-center mb-5">Contacte directamente a LorHels Auth para verificar la autenticidad de este personal.</p>
+                    <p class="text-xs text-blue-700 text-center mb-5">Contacte directamente a <b>${companyData.name}</b> para verificar la autenticidad de este personal.</p>
                     
                     <div class="space-y-4 text-sm text-blue-800">
                         <div class="flex items-center">
                             <svg class="w-5 h-5 mr-3 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                            <a href="tel:+18299135723" class="hover:underline font-medium">1 (829) 913-5723</a>
+                            <a href="tel:${companyData.phoneDisplay.replace(/[^0-9+]/g, '')}" class="hover:underline font-medium">${companyData.phoneDisplay}</a>
                         </div>
                         <div class="flex items-center">
                             <svg class="w-5 h-5 mr-3 shrink-0 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.125-.353-.16-.893-.36-1.782-1.16-.723-.651-1.21-1.455-1.352-1.696-.142-.24-.015-.371.106-.492.108-.108.24-.282.36-.424.12-.142.16-.243.24-.405.08-.162.04-.304-.02-.424-.06-.12-.54-1.303-.74-1.783-.195-.468-.393-.404-.54-.412h-.461c-.16 0-.42.06-.64.299-.22.24-.84.821-.84 2.001 0 1.18.86 2.321.98 2.481.12.16 1.69 2.58 4.095 3.619.574.248 1.022.396 1.37.507.575.183 1.099.157 1.512.095.465-.07 1.43-.583 1.63-.1147.2-.564.2-.1047.14-.1147-.06-.104-.22-.164-.46-.284z"/></svg>
-                            <a href="https://wa.me/18299135723" target="_blank" class="hover:underline font-medium">WhatsApp (+1 (829) 913-5723)</a>
+                            <a href="https://wa.me/${companyData.phoneLink}" target="_blank" class="hover:underline font-medium">WhatsApp Directo</a>
                         </div>
                         <div class="flex items-center">
                             <svg class="w-5 h-5 mr-3 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                            <a href="mailto:info@handhelsinc.net" class="hover:underline font-medium break-all">info@handhelsinc.net</a>
+                            <a href="mailto:${companyData.email}" class="hover:underline font-medium break-all">${companyData.email}</a>
                         </div>
                         <div class="flex items-start">
                             <svg class="w-5 h-5 mr-3 mt-0.5 shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <span class="leading-relaxed">Calle 5, #37D, Pueblo Nuevo, Los Alcarrizos, Santo Domingo Oeste.</span>
+                            <span class="leading-relaxed">${companyData.address}</span>
                         </div>
                         
                         <div class="mt-4 w-full h-48 rounded-xl overflow-hidden border border-blue-200 shadow-sm relative">
-                            <iframe 
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d562.3450244806361!2d-70.02019141122801!3d18.52929430217758!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8eaf8b1a051ba87d%3A0x4ca1db016264c7d9!2sHandhels%20Inc!5e0!3m2!1sen!2sdo!4v1775507973134!5m2!1sen!2sdo"
-                                class="absolute top-0 left-0 w-full h-full border-0"
-                                allowfullscreen=""
-                                loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade">
-                            </iframe>
+                            <iframe src="${companyData.mapUrl}" class="absolute top-0 left-0 w-full h-full border-0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                         </div>
-                        
                     </div>
                 </div>
             `;
